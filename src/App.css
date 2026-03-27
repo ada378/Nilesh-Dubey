@@ -3679,7 +3679,7 @@ body {
   .nav-cta { padding: 8px 14px; font-size: 11px; }
   .navbar-actions { gap: 10px; }
   
-  /* Hide floating images on mobile */
+  /* Maintain floating images on mobile but tone them down */
   .floating-images-left,
   .floating-images-right,
   .floating-grid-bg,
@@ -3689,7 +3689,9 @@ body {
   .investment-floating-imgs,
   .cta-floating-imgs,
   .ecosystem-photo-collage {
-    display: none;
+    display: block;
+    opacity: 0.6;
+    pointer-events: none;
   }
   
   /* Hero */
@@ -4266,3 +4268,85 @@ body {
   filter: brightness(1.4) contrast(1.1) !important;
   box-shadow: 0 10px 40px rgba(212, 175, 55, 0.4);
 }
+
+/* Universal Floating Elements Animation for ALL Gaps */
+.floating-images-left, .floating-images-right, 
+.flow-floating-imgs, .brand-floating-imgs, 
+.investment-floating-imgs, .testimonial-floating-imgs, 
+.cta-floating-imgs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.float-img, .flow-float-img, .brand-float-img, 
+.investment-float-img, .tf-img, .cta-float-img {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 20px;
+  border: 3px solid rgba(212, 175, 55, 0.2);
+  opacity: 0.2;
+  filter: grayscale(0.5) brightness(1.5);
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15);
+  animation: universalFloat 15s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* Distribute positions perfectly across the screen gaps */
+.float-img:nth-child(1), .flow-float-img:nth-child(1), .brand-float-img:nth-child(1), .investment-float-img:nth-child(1), .tf-img:nth-child(1), .cta-float-img:nth-child(1) {
+  top: 15%; left: 5%; width: 140px; height: 140px; animation-delay: 0s;
+}
+.float-img:nth-child(2), .flow-float-img:nth-child(2), .brand-float-img:nth-child(2), .investment-float-img:nth-child(2), .tf-img:nth-child(2), .cta-float-img:nth-child(2) {
+  top: 60%; left: 8%; width: 180px; height: 180px; animation-delay: 3s;
+}
+.float-img:nth-child(3), .flow-float-img:nth-child(3), .brand-float-img:nth-child(3), .investment-float-img:nth-child(3), .tf-img:nth-child(3), .cta-float-img:nth-child(3) {
+  top: 20%; right: 5%; width: 160px; height: 160px; animation-delay: 6s;
+}
+.float-img:nth-child(4), .flow-float-img:nth-child(4), .brand-float-img:nth-child(4), .investment-float-img:nth-child(4), .tf-img:nth-child(4), .cta-float-img:nth-child(4) {
+  top: 75%; right: 10%; width: 220px; height: 220px; animation-delay: 9s;
+}
+
+@keyframes universalFloat {
+  0% { transform: translateY(0) rotate(0deg) scale(1); }
+  50% { transform: translateY(-40px) rotate(8deg) scale(1.05); opacity: 0.4; box-shadow: 0 20px 50px rgba(212, 175, 55, 0.3); }
+  100% { transform: translateY(10px) rotate(-8deg) scale(0.95); }
+}
+
+/* Mobile adjustments for all floating objects so they don't break layout or overlap heavily */
+@media (max-width: 768px) {
+  .float-img, .flow-float-img, .brand-float-img, 
+  .investment-float-img, .tf-img, .cta-float-img, 
+  .animated-floating-photo, .tg-img, .collage-img {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 12px !important;
+    border-width: 1px !important;
+    opacity: 0.3 !important;
+  }
+  
+  /* Re-position specifically for mobile so they stay on the edges */
+  .float-img:nth-child(1), .flow-float-img:nth-child(1), .brand-float-img:nth-child(1), 
+  .investment-float-img:nth-child(1), .tf-img:nth-child(1), .cta-float-img:nth-child(1), .animated-floating-photo.p1 { 
+    top: 5% !important; left: -5% !important; 
+  }
+  .float-img:nth-child(2), .flow-float-img:nth-child(2), .brand-float-img:nth-child(2), 
+  .investment-float-img:nth-child(2), .tf-img:nth-child(2), .cta-float-img:nth-child(2), .animated-floating-photo.p2 { 
+    top: 40% !important; right: -5% !important; left: auto !important; 
+  }
+  .float-img:nth-child(3), .flow-float-img:nth-child(3), .brand-float-img:nth-child(3), 
+  .investment-float-img:nth-child(3), .tf-img:nth-child(3), .cta-float-img:nth-child(3), .animated-floating-photo.p3 { 
+    top: 75% !important; left: -5% !important; right: auto !important; 
+  }
+  .float-img:nth-child(4), .flow-float-img:nth-child(4), .brand-float-img:nth-child(4), 
+  .investment-float-img:nth-child(4), .tf-img:nth-child(4), .cta-float-img:nth-child(4), .animated-floating-photo.p4 { 
+    top: 90% !important; right: 20% !important; left: auto !important; 
+  }
+}
+

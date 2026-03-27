@@ -411,16 +411,17 @@ function MarqueeCarouselShowcase() {
           const dist = Math.abs(centerX - itemCenter);
           const maxDist = window.innerWidth / 2;
 
-          // scale factor: center is 1.15, fades to 0.75 at edges
-          let scale = 1.15 - (dist / maxDist) * 0.4;
-          scale = Math.max(0.75, Math.min(1.15, scale));
+          // scale factor: center is 1.35, fades to 0.75 at edges
+          let scale = 1.35 - (dist / maxDist) * 0.6;
+          scale = Math.max(0.75, Math.min(1.35, scale));
 
           // opacity factor
-          let opacity = 1 - (dist / maxDist) * 0.5;
+          let opacity = 1.1 - (dist / maxDist) * 0.6;
           opacity = Math.max(0.4, Math.min(1, opacity));
 
           item.style.transform = `scale(${scale})`;
           item.style.opacity = opacity;
+          item.style.zIndex = Math.round(scale * 100);
         });
       };
 
@@ -891,9 +892,17 @@ function FeaturedProject() {
 
 function ChandraprabhaSection() {
   return (
-    <section className="brand-section chandraprabha-section">
+    <section className="brand-section chandraprabha-section" style={{ position: 'relative' }}>
       <div className="brand-bg-pattern"></div>
-      <div className="container">
+      
+      <div className="brand-floating-imgs" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
+        <img src={hero1} alt="" className="brand-float-img f1" />
+        <img src={hero2} alt="" className="brand-float-img f2" />
+        <img src={hero3} alt="" className="brand-float-img f3" />
+        <img src={hero4} alt="" className="brand-float-img f4" />
+      </div>
+
+      <div className="container" style={{ position: 'relative', zIndex: 2 }}>
         <div className="brand-header">
           <span className="section-tag">Realty Partner</span>
           <h2 className="section-title">Chandraprabha Realty</h2>
@@ -943,9 +952,17 @@ function ChandraprabhaSection() {
 
 function QalaGrihaSection() {
   return (
-    <section className="brand-section qala-section">
+    <section className="brand-section qala-section" style={{ position: 'relative' }}>
       <div className="brand-bg-pattern"></div>
-      <div className="container">
+
+      <div className="brand-floating-imgs" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
+        <img src={hero4} alt="" className="brand-float-img f1" />
+        <img src={hero3} alt="" className="brand-float-img f2" />
+        <img src={hero2} alt="" className="brand-float-img f3" />
+        <img src={hero1} alt="" className="brand-float-img f4" />
+      </div>
+
+      <div className="container" style={{ position: 'relative', zIndex: 2 }}>
         <div className="brand-header">
           <span className="section-tag">Design Studio</span>
           <h2 className="section-title">QalaGriha</h2>
