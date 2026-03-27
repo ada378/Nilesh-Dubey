@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import Lenis from 'lenis'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { 
-  Building2, 
-  Home, 
-  Palette, 
-  User, 
-  Phone, 
-  Mail, 
+import {
+  Building2,
+  Home,
+  Palette,
+  User,
+  Phone,
+  Mail,
   MapPin,
   ArrowRight,
   Menu,
@@ -149,7 +149,7 @@ function App() {
       <Navbar />
       <main>
         <section id="home"><HeroCarousel /></section>
-        <HeroCardsShowcase />
+        <MarqueeCarouselShowcase />
         <FeaturedProject />
         <ProjectsShowcase />
         <section id="projects"><EcosystemSection brands={ecosystemBrands} /></section>
@@ -237,7 +237,7 @@ function Navbar() {
 function HeroCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [direction, setDirection] = useState('next')
-  
+
   const slides = [
     { id: 1, image: hero1, tagline: 'Premium Developments' },
     { id: 2, image: hero2, tagline: 'Build Excellence' },
@@ -303,9 +303,9 @@ function HeroCarousel() {
             const isActive = index === currentSlide
             const isPrev = index === (currentSlide - 1 + slides.length) % slides.length
             const isNext = index === (currentSlide + 1) % slides.length
-            
+
             return (
-              <div 
+              <div
                 key={slide.id}
                 className={`carousel-slide ${isActive ? 'active' : ''} ${isPrev && direction === 'next' ? 'exit-left' : ''} ${isNext && direction === 'prev' ? 'exit-right' : ''}`}
               >
@@ -334,7 +334,7 @@ function HeroCarousel() {
           </button>
           <div className="carousel-indicators">
             {slides.map((slide, index) => (
-              <button 
+              <button
                 key={index}
                 className={`carousel-dot ${index === currentSlide ? 'active' : ''}`}
                 onClick={() => {
@@ -362,141 +362,142 @@ function HeroCarousel() {
   )
 }
 
-function HeroCardsShowcase() {
+function MarqueeCarouselShowcase() {
   const sectionRef = useRef(null)
-  const cardsRef = useRef([])
-  
-  const heroCards = [
-    {
-      id: 1,
-      image: hero1,
-      title: 'Premium Developments',
-      description: 'Award-winning residential & commercial projects crafted with excellence',
-      button: 'View Projects',
-      color: 'from-amber-500/20 to-yellow-500/20'
-    },
-    {
-      id: 2,
-      image: hero2,
-      title: 'Luxury Realty',
-      description: 'End-to-end property solutions with transparent pricing and verified listings',
-      button: 'Explore Properties',
-      color: 'from-orange-500/20 to-red-500/20'
-    },
-    {
-      id: 3,
-      image: hero3,
-      title: 'Design Studio',
-      description: 'Transform your space with world-class architectural design services',
-      button: 'View Designs',
-      color: 'from-yellow-500/20 to-amber-500/20'
-    }
-  ]
+  const floatingRef = useRef([])
+  const trackRef = useRef(null)
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.fromTo('.hero-card-bg', 
-        { scale: 1.3, opacity: 0 },
-        { scale: 1, opacity: 0.6, duration: 1.5, ease: 'power3.out' }
-      )
-
-      gsap.fromTo(cardsRef.current,
-        { y: 150, opacity: 0, scale: 0.8, z: -100 },
-        { 
-          y: 0, 
-          opacity: 1, 
-          scale: 1, 
-          z: 0,
-          duration: 1.2, 
-          stagger: 0.15,
-          ease: 'power3.out'
+      gsap.fromTo('.marquee-header',
+        { y: 60, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top 80%',
+          }
         }
       )
 
-      gsap.fromTo('.hero-cards-header',
-        { y: 60, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1, delay: 0.3, ease: 'power3.out' }
-      )
-    }, sectionRef)
-
-    return () => ctx.revert()
-  }, [])
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      cardsRef.current.forEach((card, index) => {
-        const forwardAmount = index === 1 ? 100 : 40
-        gsap.fromTo(card, 
-          { z: -100, scale: 0.95 },
-          {
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: 'top bottom',
-              end: 'bottom top',
-              scrub: 1
-            },
-            z: forwardAmount,
-            scale: 1,
-            ease: 'power1.out'
+      floatingRef.current.forEach((el, index) => {
+        gsap.to(el, {
+          y: -150 - (index * 50),
+          rotation: index % 2 === 0 ? 15 : -15,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 1.5
           }
-        )
+        })
       })
-    }, sectionRef)
 
+      const updateCenterScale = () => {
+        if (!trackRef.current) return;
+        const items = trackRef.current.querySelectorAll('.marquee-item');
+        const centerX = window.innerWidth / 2;
+
+        items.forEach(item => {
+          const rect = item.getBoundingClientRect();
+          // Skip off-screen elements to save performance
+          if (rect.right < 0 || rect.left > window.innerWidth) return;
+
+          const itemCenter = rect.left + rect.width / 2;
+          const dist = Math.abs(centerX - itemCenter);
+          const maxDist = window.innerWidth / 2;
+
+          // scale factor: center is 1.15, fades to 0.75 at edges
+          let scale = 1.15 - (dist / maxDist) * 0.4;
+          scale = Math.max(0.75, Math.min(1.15, scale));
+
+          // opacity factor
+          let opacity = 1 - (dist / maxDist) * 0.5;
+          opacity = Math.max(0.4, Math.min(1, opacity));
+
+          item.style.transform = `scale(${scale})`;
+          item.style.opacity = opacity;
+        });
+      };
+
+      gsap.ticker.add(updateCenterScale);
+
+      // Cleanup
+      return () => {
+        gsap.ticker.remove(updateCenterScale);
+      }
+    }, sectionRef)
     return () => ctx.revert()
   }, [])
 
-  const handleHover = (index, isEnter) => {
-    gsap.to(cardsRef.current[index], {
-      scale: 1.08,
-      rotateY: isEnter ? 5 : 0,
-      rotateX: isEnter ? -5 : 0,
-      boxShadow: isEnter 
-        ? '0 30px 60px rgba(212, 175, 55, 0.4), 0 0 40px rgba(212, 175, 55, 0.2)' 
-        : '0 10px 40px rgba(0, 0, 0, 0.3)',
-      duration: 0.4,
-      ease: 'power3.out'
-    })
-  }
+  const carouselItems = [
+    {
+      src: 'https://images.unsplash.com/photo-1628624747186-a941c476b7ef?w=800&q=80',
+      title: 'Premium Architect 1'
+    },
+    {
+      src: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80',
+      title: 'Premium Architect 2'
+    },
+
+    {
+      src: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80',
+      title: 'Modern Residencies'
+    },
+
+    {
+      src: 'https://images.unsplash.com/photo-1600607686527-6fb886090705?w=800&q=80', // another interior/architecture
+      title: 'Interior Masterpiece'
+    }
+  ];
 
   return (
-    <section ref={sectionRef} className="hero-cards-section">
-      <div className="hero-cards-bg">
-        <div className="hero-cards-gradient"></div>
+    <section ref={sectionRef} className="marquee-carousel-section">
+      <div className="sparkle-bg">
+        {[...Array(20)].map((_, i) => (
+          <div key={i} className="sparkle-dot" style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 5}s`,
+            width: `${2 + Math.random() * 3}px`,
+            height: `${2 + Math.random() * 3}px`,
+          }}></div>
+        ))}
       </div>
-      
-      <div className="hero-cards-container">
-        <div className="hero-cards-header">
-          <h2 className="hero-cards-title">Explore Our Ecosystem</h2>
-          <p className="hero-cards-subtitle">Three pillars of excellence under one roof</p>
-        </div>
-        
-        <div className="hero-cards-grid">
-          {heroCards.map((card, index) => (
-            <div
-              key={card.id}
-              ref={el => cardsRef.current[index] = el}
-              className="hero-card"
-              onMouseEnter={() => handleHover(index, true)}
-              onMouseLeave={() => handleHover(index, false)}
-              onTouchStart={() => handleHover(index, true)}
-              onTouchEnd={() => handleHover(index, false)}
-            >
-              <div className="hero-card-bg-wrapper">
-                <img src={card.image} alt={card.title} className="hero-card-bg" />
-                <div className={`hero-card-overlay ${card.color}`}></div>
+
+      <img ref={el => floatingRef.current[0] = el} src={hero1} alt="" className="animated-floating-photo p1" />
+      <img ref={el => floatingRef.current[1] = el} src={hero2} alt="" className="animated-floating-photo p2" />
+      <img ref={el => floatingRef.current[2] = el} src={hero3} alt="" className="animated-floating-photo p3" />
+      <img ref={el => floatingRef.current[3] = el} src={hero4} alt="" className="animated-floating-photo p4" />
+
+      <div className="marquee-header">
+        <span className="section-tag">Premium Showcase</span>
+        <h2 className="section-title">Architectural Masterpieces</h2>
+        <p className="section-subtitle">Experience luxury spaces designed to inspire</p>
+      </div>
+
+      <div className="marquee-wrapper">
+        <div className="marquee-track" ref={trackRef}>
+          {carouselItems.map((item, i) => (
+            <div className="marquee-item" key={`m1-${i}`}>
+              <img src={item.src} alt={item.title} />
+              <div className="marquee-item-overlay">
+                <h3 className="marquee-item-title">{item.title}</h3>
               </div>
-              
-              <div className="hero-card-content">
-                <h3 className="hero-card-title">{card.title}</h3>
-                <p className="hero-card-desc">{card.description}</p>
-                <button className="hero-card-btn">
-                  {card.button}
-                  <ArrowRight size={18} />
-                </button>
+              <div className="marquee-item-glow"></div>
+            </div>
+          ))}
+          {carouselItems.map((item, i) => (
+            <div className="marquee-item" key={`m2-${i}`}>
+              <img src={item.src} alt={item.title} />
+              <div className="marquee-item-overlay">
+                <h3 className="marquee-item-title">{item.title}</h3>
               </div>
-              
-              <div className="hero-card-glow"></div>
+              <div className="marquee-item-glow"></div>
             </div>
           ))}
         </div>
@@ -526,7 +527,7 @@ function ProjectsShowcase() {
           }}></div>
         ))}
       </div>
-      
+
       <div className="floating-images-left">
         <img src={hero1} alt="" className="float-img" />
         <img src={hero2} alt="" className="float-img" />
@@ -589,11 +590,11 @@ function EcosystemSection({ brands }) {
 
       gsap.fromTo(imagesRef.current,
         { y: 80, opacity: 0, scale: 0.9 },
-        { 
-          y: 0, 
-          opacity: 1, 
+        {
+          y: 0,
+          opacity: 1,
           scale: 1,
-          duration: 0.8, 
+          duration: 0.8,
           stagger: 0.15,
           ease: 'power3.out',
           delay: 0.3
@@ -602,11 +603,11 @@ function EcosystemSection({ brands }) {
 
       gsap.fromTo(cardsRef.current,
         { y: 60, opacity: 0, scale: 0.95 },
-        { 
-          y: 0, 
-          opacity: 1, 
+        {
+          y: 0,
+          opacity: 1,
           scale: 1,
-          duration: 0.7, 
+          duration: 0.7,
           stagger: 0.1,
           ease: 'power3.out',
           delay: 0.5
@@ -621,7 +622,7 @@ function EcosystemSection({ brands }) {
     const ctx = gsap.context(() => {
       cardsRef.current.forEach((card, index) => {
         const forwardAmount = index * 50 + 20
-        gsap.fromTo(card, 
+        gsap.fromTo(card,
           { z: -100, scale: 0.95, opacity: 0.5 },
           {
             scrollTrigger: {
@@ -646,8 +647,8 @@ function EcosystemSection({ brands }) {
     gsap.to(cardsRef.current[index], {
       scale: 1.05,
       y: isEnter ? -10 : 0,
-      boxShadow: isEnter 
-        ? '0 25px 50px rgba(212, 175, 55, 0.3)' 
+      boxShadow: isEnter
+        ? '0 25px 50px rgba(212, 175, 55, 0.3)'
         : '0 10px 30px rgba(0, 0, 0, 0.3)',
       duration: 0.4,
       ease: 'power3.out'
@@ -711,10 +712,10 @@ function EcosystemSection({ brands }) {
 
         <div className="ecosystem-grid">
           {brands.map((brand, index) => (
-            <div 
+            <div
               ref={el => cardsRef.current[index] = el}
-              key={brand.name} 
-              className="ecosystem-card" 
+              key={brand.name}
+              className="ecosystem-card"
               style={{ '--accent-color': brand.color, '--delay': `${index * 0.1}s` }}
               onMouseEnter={() => handleCardHover(index, true)}
               onMouseLeave={() => handleCardHover(index, false)}
@@ -1007,10 +1008,10 @@ function FounderSection() {
       const textElements = contentRef.current.querySelectorAll('.founder-animate-line')
       gsap.fromTo(textElements,
         { y: 40, opacity: 0 },
-        { 
-          y: 0, 
-          opacity: 1, 
-          duration: 0.8, 
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
           stagger: 0.15,
           ease: 'power3.out',
           delay: 0.3
@@ -1020,11 +1021,11 @@ function FounderSection() {
       const stats = contentRef.current.querySelectorAll('.founder-stat-item')
       gsap.fromTo(stats,
         { y: 30, opacity: 0, scale: 0.9 },
-        { 
-          y: 0, 
-          opacity: 1, 
+        {
+          y: 0,
+          opacity: 1,
           scale: 1,
-          duration: 0.6, 
+          duration: 0.6,
           stagger: 0.1,
           ease: 'power3.out',
           delay: 0.8
@@ -1069,8 +1070,8 @@ function FounderSection() {
       scale: isEnter ? 1.05 : 1,
       rotateY: isEnter ? 5 : 0,
       rotateX: isEnter ? -5 : 0,
-      boxShadow: isEnter 
-        ? '0 30px 60px rgba(212, 175, 55, 0.5), 0 0 40px rgba(212, 175, 55, 0.3)' 
+      boxShadow: isEnter
+        ? '0 30px 60px rgba(212, 175, 55, 0.5), 0 0 40px rgba(212, 175, 55, 0.3)'
         : '0 20px 40px rgba(0, 0, 0, 0.4)',
       duration: 0.5,
       ease: 'power3.out'
@@ -1085,7 +1086,7 @@ function FounderSection() {
       </div>
 
       <div className="founder-showcase-container">
-        <div 
+        <div
           className="founder-image-wrapper"
           ref={imageRef}
           onMouseEnter={() => handleImageHover(true)}
@@ -1098,19 +1099,19 @@ function FounderSection() {
 
         <div ref={contentRef} className="founder-content">
           <span className="founder-label founder-animate-line">Visionary Leader</span>
-          
+
           <h2 className="founder-name-text founder-animate-line">Nilesh Dubey</h2>
-          
+
           <p className="founder-title founder-animate-line">Founder & Managing Director</p>
-          
+
           <div className="founder-divider founder-animate-line"></div>
-          
+
           <p className="founder-story founder-animate-line">
-            With over 15 years of excellence in real estate, I've built more than structures— 
-            I've created homes and legacies for over 500 families. Our ecosystem approach 
+            With over 15 years of excellence in real estate, I've built more than structures—
+            I've created homes and legacies for over 500 families. Our ecosystem approach
             ensures every client receives end-to-end excellence from development to design.
           </p>
-          
+
           <p className="founder-quote founder-animate-line">
             "We don't just build properties; we craft experiences that stand the test of time."
           </p>
@@ -1191,7 +1192,7 @@ function InvestmentSection() {
               <div className="investment-center"><TrendingUp size={60} /></div>
             </div>
           </div>
-          
+
           <div className="investment-content">
             <span className="section-tag">Investment Opportunities</span>
             <h2 className="section-title">Partner with Unique Spark Infra</h2>
@@ -1284,7 +1285,7 @@ function CTASection() {
         <div className="cta-gradient"></div>
         <div className="cta-particles"></div>
       </div>
-      
+
       <div className="container">
         <div className="cta-content">
           <h2>Ready to Transform Your Space?</h2>
