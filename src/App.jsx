@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Lenis from 'lenis'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import {
   Building2,
   Home,
@@ -24,14 +25,25 @@ import {
   Eye,
   Handshake,
   ChevronLeft,
-  ChevronRight as ChevRight
+  ChevronRight as ChevRight,
+  Map,
+  Layers
 } from 'lucide-react'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import hero1 from './assets/hero.png'
 import hero2 from './assets/Gold Modern Home Building Construction Logo.png'
 import hero3 from './assets/Black White Modern Business Company Logo.png'
 import hero4 from './assets/Black White Modern Greative Triangle Logo (1).png'
 import founderVideo from './assets/Red inspirational Quotes video.mp4'
 import './App.css'
+
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+})
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -158,6 +170,7 @@ function App() {
         <section id="founder"><FounderSection /></section>
         <FlowSection steps={userFlowSteps} />
         <TrustSection features={trustFeatures} />
+        <PropertyMapSection />
         <InvestmentSection />
         <TestimonialsSection testimonials={testimonials} />
         <CTASection />
@@ -1152,6 +1165,148 @@ function FounderSection() {
             Connect With Nilesh
             <ArrowRight size={20} />
           </button>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function PropertyMapSection() {
+  const properties = [
+    { id: 1, name: 'Sunrise Villas', location: 'Prime Location, Mumbai', price: '₹1.5 Cr', type: 'Luxury Villa', lat: 19.0760, lng: 72.8777, beds: 4, sqft: 3000, image: hero1 },
+    { id: 2, name: 'Golden Heights', location: 'City Center, Mumbai', price: '₹2.5 Cr', type: 'Premium Apartment', lat: 19.1135, lng: 72.8697, beds: 3, sqft: 2500, image: hero2 },
+    { id: 3, name: 'Royal Residency', location: 'Lake View, Mumbai', price: '₹3.2 Cr', type: 'Penthouse', lat: 19.0176, lng: 72.8562, beds: 5, sqft: 4500, image: hero3 },
+    { id: 4, name: 'Diamond Towers', location: 'Business District, Mumbai', price: '₹1.8 Cr', type: 'Commercial', lat: 18.9388, lng: 72.8330, beds: 0, sqft: 2000, image: hero4 },
+    { id: 5, name: 'Silver Oak', location: 'Suburbs, Mumbai', price: '₹95 Lakhs', type: 'Villa', lat: 19.1621, lng: 72.8392, beds: 3, sqft: 2200, image: hero1 },
+    { id: 6, name: 'Platinum Heights', location: 'Uptown, Mumbai', price: '₹4.5 Cr', type: 'Penthouse', lat: 18.9712, lng: 72.8198, beds: 5, sqft: 5000, image: hero2 }
+  ]
+
+  const [selectedProperty, setSelectedProperty] = useState(properties[0])
+  const [mapView, setMapView] = useState('roadmap')
+
+  return (
+    <section className="property-map-section" id="map">
+      <div className="map-section-bg">
+        <div className="map-bg-pattern"></div>
+      </div>
+      
+      <div className="container">
+        <div className="section-header">
+          <span className="section-tag"><Map size={18} /> Location Map</span>
+          <h2 className="section-title">Our Property Locations</h2>
+          <p className="section-subtitle">Explore our premium properties across Mumbai on the interactive map</p>
+        </div>
+
+        <div className="map-interface">
+          <div className="map-sidebar">
+            <div className="sidebar-header">
+              <Layers size={20} />
+              <h3>Property Listings</h3>
+              <span className="property-count">{properties.length} Properties</span>
+            </div>
+            
+            <div className="map-view-toggle">
+              <button 
+                className={`view-btn ${mapView === 'roadmap' ? 'active' : ''}`}
+                onClick={() => setMapView('roadmap')}
+              >
+                Roadmap
+              </button>
+              <button 
+                className={`view-btn ${mapView === 'satellite' ? 'active' : ''}`}
+                onClick={() => setMapView('satellite')}
+              >
+                Satellite
+              </button>
+            </div>
+
+            <div className="property-list">
+              {properties.map((property) => (
+                <div 
+                  key={property.id}
+                  className={`property-list-item ${selectedProperty?.id === property.id ? 'selected' : ''}`}
+                  onClick={() => setSelectedProperty(property)}
+                >
+                  <div className="property-list-image">
+                    <img src={property.image} alt={property.name} />
+                    <span className="property-type-badge">{property.type}</span>
+                  </div>
+                  <div className="property-list-info">
+                    <h4>{property.name}</h4>
+                    <p className="property-location"><MapPin size={12} /> {property.location}</p>
+                    <div className="property-details">
+                      <span className="detail-item"><Home size={12} /> {property.beds > 0 ? `${property.beds} BHK` : 'Commercial'}</span>
+                      <span className="detail-item">{property.sqft} Sq.ft</span>
+                    </div>
+                    <p className="property-price">{property.price}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="map-container">
+            <MapContainer 
+              center={[19.0760, 72.8777]} 
+              zoom={11} 
+              className="leaflet-map"
+              key={mapView}
+            >
+              {mapView === 'satellite' ? (
+                <TileLayer
+                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                  attribution='&copy; Esri'
+                />
+              ) : (
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                />
+              )}
+              
+              {properties.map((property) => (
+                <Marker 
+                  key={property.id} 
+                  position={[property.lat, property.lng]}
+                  eventHandlers={{
+                    click: () => setSelectedProperty(property),
+                  }}
+                >
+                  <Popup className="custom-popup">
+                    <div className="popup-content">
+                      <img src={property.image} alt={property.name} />
+                      <h4>{property.name}</h4>
+                      <p className="popup-location"><MapPin size={12} /> {property.location}</p>
+                      <p className="popup-price">{property.price}</p>
+                      <button className="popup-btn">View Details</button>
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+
+            {selectedProperty && (
+              <div className="selected-property-card">
+                <div className="selected-property-image">
+                  <img src={selectedProperty.image} alt={selectedProperty.name} />
+                  <span className="selected-type-badge">{selectedProperty.type}</span>
+                </div>
+                <div className="selected-property-info">
+                  <h3>{selectedProperty.name}</h3>
+                  <p className="selected-location"><MapPin size={14} /> {selectedProperty.location}</p>
+                  <div className="selected-specs">
+                    <span><Home size={14} /> {selectedProperty.beds > 0 ? `${selectedProperty.beds} BHK` : 'Commercial'}</span>
+                    <span>|</span>
+                    <span>{selectedProperty.sqft} Sq.ft</span>
+                  </div>
+                  <div className="selected-price-row">
+                    <span className="selected-price">{selectedProperty.price}</span>
+                    <button className="selected-cta">View Details <ArrowRight size={14} /></button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>
